@@ -9,3 +9,5 @@ install:
 
 script:
   - bash $TRAVIS_BUILD_DIR/scripts/package_tools.sh
+
+
