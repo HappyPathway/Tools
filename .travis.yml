@@ -8,4 +8,4 @@ install:
   - gem install deb-s3
 
 script:
-  - fpm 
+  - bash $TRAVIS_BUILD_DIR/scripts/package_tools.sh
