@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-
-apt-get install -y jq
-gem install deb-s3 fpm
-
 export BUILD_VERSION=$(cat $TRAVIS_BUILD_DIR/package.json | jq -r .version)
 export DEBIAN_PACKAGE="spinnaker-deployment-tools_${BUILD_VERSION}_amd64.deb"
 echo $DEBIAN_PACKAGE
