@@ -1,0 +1,11 @@
+language: ruby
+rvm:
+  - 2.2
+
+install:
+  - sudo apt-get install -y jq
+  - gem install fpm
+  - gem install deb-s3
+
+script:
+  - fpm 

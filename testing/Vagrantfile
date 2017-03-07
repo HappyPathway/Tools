@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 1024
+    v.cpus = 2
+  end
+  config.vm.box_check_update = false
+  config.vm.provision "file", source: "/etc/hosts", destination: "/tmp/hosts"
+  config.vm.provision "shell", inline: "sudo mv /tmp/hosts /etc/hosts"
+  config.vm.provision "chef_client" do |chef|
+      chef.chef_server_url = "https://chef-devops-production-e1e-001/organizations/devops"
+      chef.validation_key_path = "#{ENV['CHEF_KEY']}"
+      chef.validation_client_name = "#{ENV['CHEF_CLIENT']}"
+      chef.add_role "exchange_admin"
+      chef.delete_node = true
+      chef.delete_client = true
+      chef.json = {
+        :role => "exchange_admin_dev",
+        :env => "default"
+      }
+  end
+end
