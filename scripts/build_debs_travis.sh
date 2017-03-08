@@ -47,11 +47,7 @@ else
   PACKAGE_APP_NAME=$APP_NAME
 fi
 
-pkg_pre_exists=$(pkg_exists cb-devops-debs $PACKAGE_APP_NAME $VERSION)
-if [ pkg_pre_exists != 0 ]
-then
-  exit 0
-fi
+
 # standard deb package prep
 init_tmp
 download_pkg
