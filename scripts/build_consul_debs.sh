@@ -143,7 +143,7 @@ pre_config_commands
 
 echo "repacking debian package"
 
-FPM_CMD="fpm -s dir -t deb -n $APP_NAME -v $VERSION"
+FPM_CMD="fpm -s dir -t deb -n $PACKAGE_APP_NAME -v $VERSION"
 
 
 FPM_CMD=$FPM_CMD" $(pkg_dependencies $CONFIG_FILE $APP_NAME)"
@@ -154,7 +154,7 @@ fi
 FPM_CMD="${FPM_CMD} ./zip_data/${BINARY_NAME}=/usr/local/${BINARY_NAME}/${BINARY_NAME}"
 if [ $has_configs > 0 ]
 then
-    FPM_CMD="${FPM_CMD} $(get_configs $CONFIG_FILE $PACKAGE_APP_NAME)"
+    FPM_CMD="${FPM_CMD} $(get_configs $CONFIG_FILE $APP_NAME)"
 fi
 if [ -n "$AFTER_INSTALL" ]
 then
