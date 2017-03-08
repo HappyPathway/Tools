@@ -1,7 +1,7 @@
 #!/bin/bash
 # set -e
 
-CONFIG_FILE=$(pwd)/$1
+CONFIG_FILE=$TRAVIS_BUILD_DIR/$1
 APP_NAME=$2
 
 if [ -z $CONFIG_FILE ]
@@ -39,6 +39,14 @@ echo upstart: $AFTER_INSTALL
 
 BINARY_NAME=$(cat $CONFIG_FILE | jq -r .binaryName)
 echo executable name: $BINARY_NAME
+
+echo "Working on Branch: $TRAVIS_BRANCH"
+if [ "$TRAVIS_BRANCH" != "master" ]
+then
+  PACKAGE_APP_NAME=$APP_NAME-$TRAVIS_BRANCH
+else
+  PACKAGE_APP_NAME=$APP_NAME
+fi
 
 function unpack_consulzip {
 	echo "Unpacking zipfile"
@@ -135,7 +143,7 @@ pre_config_commands
 
 echo "repacking debian package"
 
-FPM_CMD="fpm -s dir -t deb -n $APP_NAME -v $VERSION"
+FPM_CMD="fpm -s dir -t deb -n $PACKAGE_APP_NAME -v $VERSION"
 
 
 FPM_CMD=$FPM_CMD" $(pkg_dependencies $CONFIG_FILE $APP_NAME)"
@@ -166,13 +174,13 @@ mv tmp/*.deb build/.
 
 echo "cleaning up"
 
-echo "Removing old package from gemfury"
-set +e  # in case package does not already exist
-gemfury yank $APP_NAME --version=$VERSION --as=chartboost
-set -e
+#echo "Removing old package from gemfury"
+#set +e  # in case package does not already exist
+#gemfury yank $APP_NAME --version=$VERSION --as=chartboost
+#set -e
 
-echo "Pushing new package to gemfury"
-gemfury push build/*.deb --as=chartboost
+#echo "Pushing new package to gemfury"
+#gemfury push build/*.deb --as=chartboost
 
 echo "Pushing new package to S3"
 deb-s3 upload build/*.deb --bucket=cb-devops-debs -e -v private
