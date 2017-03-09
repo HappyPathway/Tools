@@ -181,6 +181,9 @@ echo "cleaning up"
 
 #echo "Pushing new package to gemfury"
 #gemfury push build/*.deb --as=chartboost
+echo "Removing old package from S3 Apt Repo"
+deb-s3 delete $PACKAGE_APP_NAME --versions=$VERSION --arch amd64 --bucket=cb-devops-debs
 
-echo "Pushing new package to S3"
-deb-s3 upload build/*.deb --bucket=cb-devops-debs -e -v private
+echo "Pushing new package to S3 Apt Repo"
+DEBIAN_PACKAGE=$(ls build/*.deb | awk -F'/' '{print $NF }')
+deb-s3 upload --bucket cb-devops-debs "build/$DEBIAN_PACKAGE" -e -v private --arch amd64
