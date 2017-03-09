@@ -23,9 +23,8 @@ def sanitize_path(_dir):
 
 def set_dir(_dir):
     _dir = sanitize_path(_dir)
-    current_dir = os.getcwd()
     try:
-        os.chdir(dir)
+        os.chdir(_dir)
         directories.append(_dir)
     except:
         os.chdir(current_dir)
@@ -63,8 +62,6 @@ def create_branch(branch_name):
 
 
 def commit(_dir, message, branch, remote='origin'):
-    set_dir(_dir)
-    print(os.getcwd())
     os.system('''git add .''')
     os.system('''git commit -m "{0}"'''.format(message))
     os.system('''git push -u {0} {1}'''.format(remote, branch))
@@ -96,13 +93,10 @@ def commit_repos(repo, branch_name, repo_dir, message):
     else:
         repo_glob = os.path.join(repo_dir, "{0}.json".format(repo))
 
-    set_dir(repo_dir)
     for repo in glob.glob(repo_glob):
         print repo
         repo_data = json.loads(open(repo).read())
-        print(json.dumps(repo_data, separators=(',', ':'), indent=4, sort_keys=True))
         set_dir(repo_data.get('repo_dir'))
-        print(os.getcwd())
         if branch_name != 'master' and not verify_branch(repo_data.get('repo_dir'), branch_name):
             create_branch(branch_name)
         commit(repo_data.get('repo_dir'), message, branch_name)
