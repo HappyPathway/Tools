@@ -15,10 +15,14 @@ current_dir = os.getcwd()
 directories = []
 
 
-def set_dir(_dir):
+def sanitize_path(_dir):
     _dir = os.path.expandvars(_dir)
     _dir = os.path.expanduser(_dir)
     _dir = os.path.abspath(_dir)
+    return _dir
+
+def set_dir(_dir):
+    _dir = sanitize_path(_dir)
     current_dir = os.getcwd()
     try:
         os.chdir(dir)
@@ -42,7 +46,8 @@ def verify_branch(_dir, branch_name):
 
 def clone_repo(_dir, repo_url):
     fresh_clone = False
-    if not os.path.isdir(_dir):
+    print(_dir)
+    if not os.path.isdir(sanitize_path(_dir)):
         os.system("git clone {0} {1}".format(repo_url, _dir))
         set_dir(_dir)
         fresh_clone = True
