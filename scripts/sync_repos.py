@@ -100,6 +100,7 @@ def commit_repos(repo, branch_name, repo_dir, message):
     for repo in glob.glob(repo_glob):
         print repo
         repo_data = json.loads(open(repo).read())
+        set_dir(repo_data.get('repo_dir'))
         if branch_name != 'master' and not verify_branch(repo_data.get('repo_dir'), branch_name):
             create_branch(branch_name)
         commit(repo_data.get('repo_dir'), message, branch_name)
