@@ -186,4 +186,4 @@ deb-s3 delete $PACKAGE_APP_NAME --versions=$VERSION --arch amd64 --bucket=cb-dev
 
 echo "Pushing new package to S3 Apt Repo"
 DEBIAN_PACKAGE=$(ls build/*.deb | awk -F'/' '{print $NF }')
-deb-s3 upload --bucket cb-devops-debs "build/$DEBIAN_PACKAGE" -e -v private --arch amd6 4
+deb-s3 upload --bucket cb-devops-debs "build/$DEBIAN_PACKAGE" -e -v private --arch amd64
