@@ -62,9 +62,17 @@ def create_branch(branch_name):
     os.system('git checkout -b {0}'.format(branch_name))
 
 
+def commit(_dir, message, branch, remote='origin'):
+    set_dir(_dir)
+    os.system('''git add .''')
+    os.system('''git commit -m "{0}"'''.format(message))
+    os.system('''git push -u {0} {1}'''.format(remote, branch))
+
+
 def reset_dirs():
     for x in directories:
         os.chdir(x)
+
 
 def load_repos(repo, branch_name, repo_dir):
     if repo == 'all':
@@ -81,8 +89,27 @@ def load_repos(repo, branch_name, repo_dir):
             create_branch(branch_name)
 
 
+def commit_repos(repo, branch_name, repo_dir, message):
+    if repo == 'all':
+        repo_glob = os.path.join(repo_dir, '*.json')
+    else:
+        repo_glob = os.path.join(repo_dir, "{0}.json".format(repo))
+
+    set_dir(repo_dir)
+    for repo in glob.glob(repo_glob):
+        print repo
+        repo_data = json.loads(open(repo).read())
+        if branch_name != 'master' and not verify_branch(repo_data.get('repo_dir'), branch_name):
+            create_branch(branch_name)
+        commit(repo_data.get('repo_dir'), message, branch_name)
+
+
 def main(opt):
-    load_repos(opt.repo, opt.branch, opt.repo_dir)
+    if not opt.commit:
+        load_repos(opt.repo, opt.branch, opt.repo_dir)
+    else:
+        commit_repos(opt.repo, opt.branch, opt.repo_dir, opt.message)
+
     reset_dirs()
 
 
@@ -93,6 +120,8 @@ if __name__ == '__main__':
     parser.add_option('-r', '--repo', default='all')
     parser.add_option('-d', dest='repo_dir', default=False)
     parser.add_option('-b', '--branch', default='master')
+    parser.add_option('--commit', action='store_true', default=False)
+    parser.add_option('-m', dest='message')
     opt, arg = parser.parse_args()    
     main(opt)
 
