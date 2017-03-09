@@ -64,6 +64,7 @@ def create_branch(branch_name):
 
 def commit(_dir, message, branch, remote='origin'):
     set_dir(_dir)
+    print(os.getcwd())
     os.system('''git add .''')
     os.system('''git commit -m "{0}"'''.format(message))
     os.system('''git push -u {0} {1}'''.format(remote, branch))
