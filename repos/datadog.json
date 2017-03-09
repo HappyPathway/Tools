@@ -4,5 +4,15 @@
   "homepage": "https://github.com/ChartBoost/datadog",
   "private": true,
   "has_issues": true,
-  "has_wiki": false
+  "has_wiki": false,
+  "teams": [
+    {
+      "name": "DevOps",
+      "permission": "admin"
+    },
+    {
+      "name": "Engineers",
+      "permission": "push"
+    }
+  ]
 }

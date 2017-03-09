@@ -11,6 +11,7 @@ import requests
 import sys
 import glob 
 
+
 def init_session(username, password, mfa_code):
     global session
     session = requests.Session()
@@ -18,10 +19,39 @@ def init_session(username, password, mfa_code):
     session.headers.update({"X-GitHub-OTP": mfa_code })
 
 
+def clear_repo_teams(org, repo_name):
+    for team in list_teams(org):
+        for repo in list_team_repos(org, team):
+            if repo == repo_name:
+                # print("Would remove team {0} from repo {1}".format(team, repo))
+                remove_team_from_repo(org, team, repo_name)
+
+
+def list_teams(org):
+    # GET /orgs/:org/teams
+    resp = session.get("https://api.github.com/orgs/{0}/teams".format(org))
+    for team in resp.json():
+        yield team.get('name')
+
+
+def list_team_repos(org, team_name):
+    # GET /teams/:id/repos
+    team_id = get_team(org, team_name).get('id')
+    resp = session.get("https://api.github.com/teams/{0}/repos".format(team_id))
+    for repo in resp.json():
+        yield repo.get('name')
+
+
+def remove_team_from_repo(org, team_name, repo_name):
+    # DELETE /teams/:id/repos/:owner/:repo
+    team = get_team(org, team_name).get('id')
+    resp = session.delete("https://api.github.com/teams/{0}/repos/{1}/{2}".format(team, org, repo_name))
+    return resp
+
+
 def get_team(org, team_name):
     # /orgs/:org/teams
     resp = session.get("https://api.github.com/orgs/{0}/teams".format(org))
-
     for team in resp.json():
         if team.get('name') == team_name:
             return team
@@ -48,7 +78,6 @@ def repo_definition(repo_definition):
 
 def repo_exists(org, repo_name):
     repos = list()
-
     resp = session.get("https://api.github.com/orgs/{0}/repos".format(org))
     for repo in resp.json():
         if repo.get('name') == repo_name:
@@ -70,6 +99,7 @@ def repo_exists(org, repo_name):
 def create_repo(org, _repo_definition):
     # POST /orgs/:org/repos
     repo = repo_definition(_repo_definition)
+
     if repo.get('teams'): 
         teams = repo.pop('teams')
     else:
@@ -79,6 +109,7 @@ def create_repo(org, _repo_definition):
         created_repo = session.post("https://api.github.com/orgs/{0}/repos".format(org),
                     data=json.dumps(repo)).json()
     else:
+        clear_repo_teams(org, repo.get('name'))
         created_repo = {"name": repo.get("name"), "exists": True}
 
     if teams:
