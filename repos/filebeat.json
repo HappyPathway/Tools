@@ -1,0 +1,8 @@
+{
+  "name": "filebeat",
+  "description": "filebeat repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/filebeat",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

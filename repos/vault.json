@@ -1,0 +1,8 @@
+{
+  "name": "vault",
+  "description": "vault repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/vault",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

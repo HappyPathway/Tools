@@ -1,0 +1,8 @@
+{
+  "name": "consul",
+  "description": "consul repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/consul",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

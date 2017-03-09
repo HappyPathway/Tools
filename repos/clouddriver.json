@@ -1,0 +1,8 @@
+{
+  "name": "clouddriver",
+  "description": "clouddriver repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/clouddriver",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

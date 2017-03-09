@@ -1,0 +1,8 @@
+{
+  "name": "front50",
+  "description": "front50 repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/front50",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

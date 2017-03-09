@@ -1,0 +1,8 @@
+{
+  "name": "elasticsearch-devops",
+  "description": "elasticsearch-devops repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/elasticsearch-devops",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

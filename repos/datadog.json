@@ -1,0 +1,8 @@
+{
+  "name": "datadog",
+  "description": "datadog repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/datadog",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

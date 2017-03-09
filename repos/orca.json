@@ -1,0 +1,8 @@
+{
+  "name": "orca",
+  "description": "orca repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/orca",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

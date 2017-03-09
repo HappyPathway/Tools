@@ -1,0 +1,8 @@
+{
+  "name": "deck",
+  "description": "deck repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/deck",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

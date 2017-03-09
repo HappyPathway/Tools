@@ -1,0 +1,8 @@
+{
+  "name": "gate",
+  "description": "gate repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/gate",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}

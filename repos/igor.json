@@ -1,0 +1,8 @@
+{
+  "name": "igor",
+  "description": "igor repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/igor",
+  "private": true,
+  "has_issues": true,
+  "has_wiki": false
+}
