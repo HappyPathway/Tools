@@ -129,14 +129,3 @@ eval $FPM_CMD
 rm build/*.deb || echo "no deb packages in build/*.deb"
 mkdir build || echo "build directory already created"
 mv *.deb build/.
-
-echo "cleaning up"
-# rm -r tmp
-
-
-echo "Removing old package from S3 Apt Repo"
-deb-s3 delete $APP_NAME --versions=$VERSION --arch amd64 --bucket=cb-devops-debs
-
-echo "Pushing new package to S3 Apt Repo"
-DEBIAN_PACKAGE=$(ls build/*.deb | awk -F'/' '{print $NF }')
-deb-s3 upload --bucket cb-devops-debs "build/$DEBIAN_PACKAGE" -e -v private
