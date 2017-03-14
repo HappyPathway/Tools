@@ -1,3 +1,8 @@
 {
-  "version": "0.1.0"
+  "version": "0.1.2",
+  "bintray_repo": "debians",
+  "bintray_package": "spinnaker-deployment-tools",
+  "arch": "amd64",
+  "distro": "trusty",
+  "component": "main"
 }

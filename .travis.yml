@@ -8,12 +8,5 @@ install:
   - gem install deb-s3
 
 script:
-  - bash $TRAVIS_BUILD_DIR/build/build_debs_bintray.sh
-
-deploy:
-  on:
-    all_branches: true
-  provider: bintray
-  file: $TRAVIS_BUILD_DIR/build/build.json
-  user: "chartboost-bot"
-  key: "ce11830a456d3e60bea5b041dc82c0630ff3aeef"
+  - bash $TRAVIS_BUILD_DIR/scripts/jfrog bt config --interactive=false --user=$BINTRAY_USER --key=$BINTRAY_KEY
+  - bash $TRAVIS_BUILD_DIR/build/package_tools.sh
