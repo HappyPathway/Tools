@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "This is the latest!"
+
 export BUILD_VERSION=$(cat $TRAVIS_BUILD_DIR/build/package.json | jq -r .version)
 export BINTRAY_PACKAGE=$(cat $TRAVIS_BUILD_DIR/build/package.json | jq -r .bintray_package)
 export BINTRAY_REPO=$(cat $TRAVIS_BUILD_DIR/build/package.json | jq -r .bintray_repo)
