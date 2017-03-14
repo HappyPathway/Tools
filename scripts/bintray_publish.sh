@@ -3,7 +3,7 @@
 export PACKAGE_PATH=$TRAVIS_BUILD_DIR/$1;
 export PACKAGE_CONFIG=$TRAVIS_BUILD_DIR/$2;
 
-export BUILD_VERSION=$(cat $PACKAGE_CONFIG | jq -r .version)
+export BUILD_VERSION=$(cat $PACKAGE_CONFIG | jq -r .packageVersion)
 export BINTRAY_PACKAGE=$(cat $PACKAGE_CONFIG | jq -r .bintray_package)
 export BINTRAY_REPO=$(cat $PACKAGE_CONFIG | jq -r .bintray_repo)
 export DEBIAN_PACKAGE="$BINTRAY_PACKAGE_${BUILD_VERSION}_amd64.deb"
