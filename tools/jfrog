@@ -1,0 +1,13 @@
+#!/bin/bash
+
+base_dir=$(dirname $0)
+CLI_OS="na"
+CLI_UNAME="na"
+
+if $(echo "${OSTYPE}" | grep -q darwin); then
+    EXEC_NAME="$base_dir/.jfrog_osx"
+else
+    EXEC_NAME="$base_dir/.jfrog_amd64"
+fi
+
+$EXEC_NAME "$@"
