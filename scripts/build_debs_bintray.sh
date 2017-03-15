@@ -130,7 +130,7 @@ rm build/*.deb || echo "no deb packages in build/*.deb"
 mkdir build || echo "build directory already created"
 mv *.deb build/.
 
-echo "cleaning up"
+
 # rm -r tmp
 
 
