@@ -2,7 +2,10 @@
 export JFROG="/opt/spinnaker/tools/jfrog"
 
 export PACKAGE_PATH=$TRAVIS_BUILD_DIR/$1;
+echo $PACKAGE_PATH
+
 export PACKAGE_CONFIG=$TRAVIS_BUILD_DIR/$2;
+echo $PACKAGE_CONFIG
 
 export BUILD_VERSION=$(cat $PACKAGE_CONFIG | jq -r .packageVersion)
 export BINTRAY_PACKAGE=$(cat $PACKAGE_CONFIG | jq -r .bintray_package)
