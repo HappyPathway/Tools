@@ -123,7 +123,7 @@ fi
 
 
 echo $FPM_CMD
-rm $APP_NAME*.deb || echo "no deb $APP_NAME package in $(pwd)"
+rm $PACKAGE_APP_NAME*.deb || echo "no deb $APP_NAME package in $(pwd)"
 eval $FPM_CMD
 
 rm build/*.deb || echo "no deb packages in build/*.deb"
