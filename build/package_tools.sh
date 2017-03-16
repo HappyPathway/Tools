@@ -13,19 +13,14 @@ export PACKAGE_PATH=$TRAVIS_BUILD_DIR/$1;
 
 echo $DEBIAN_PACKAGE
 
-fpm -s dir -t deb -n spinnaker-deployment-tools -v $BUILD_VERSION scripts/=/opt/spinnaker/tools/
+fpm -s dir -t deb -n spinnaker-deployment-tools -v $BUILD_VERSION -a amd64 scripts/=/opt/spinnaker/tools/
 
-#deb-s3 delete spinnaker-deployment-tools --versions=$BUILD_VERSION --arch amd64 --bucket=cb-devops-debs
-#deb-s3 upload --bucket cb-devops-debs "$DEBIAN_PACKAGE" -e -v private
-
-echo $TRAVIS_BUILD_DIR/scripts/jfrog bt ps $BINTRAY_USER/$BINTRAY_REPO/$BINTRAY_PACKAGE
-
-PKG_EXISTS=$($TRAVIS_BUILD_DIR/scripts/jfrog bt ps $BINTRAY_USER/$BINTRAY_REPO/$BINTRAY_PACKAGE | grep -q $BINTRAY_REPO; echo $?)
-if [ $PKG_EXISTS != 0 ]
-then
-	echo $TRAVIS_BUILD_DIR/scripts/jfrog bt pc $BINTRAY_USER/$BINTRAY_REPO/$BINTRAY_PACKAGE
-	$TRAVIS_BUILD_DIR/scripts/jfrog bt pc $BINTRAY_USER/$BINTRAY_REPO/$BINTRAY_PACKAGE
+if $(echo "${OSTYPE}" | grep -q darwin); then
+    brew install awscli
+else
+    sudo apt-get install awscli
 fi
 
-echo $TRAVIS_BUILD_DIR/scripts/jfrog bt u  --deb=$DEBIAN_DISTRO/$DEBIAN_COMP/$DEBIAN_ARCH --publish=true --override=true $DEBIAN_PACKAGE $BINTRAY_USER/$BINTRAY_REPO/$BINTRAY_PACKAGE/$BUILD_VERSION
-$TRAVIS_BUILD_DIR/scripts/jfrog bt u  --deb=$DEBIAN_DISTRO/$DEBIAN_COMP/$DEBIAN_ARCH --publish=true --override=true $DEBIAN_PACKAGE $BINTRAY_USER/$BINTRAY_REPO/$BINTRAY_PACKAGE/$BUILD_VERSION
+pip install --upgrade --user awscli
+
+aws s3 cp spinnaker-deployment-tools*.deb s3://cb-devops-repo/ 
