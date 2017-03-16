@@ -5,8 +5,6 @@ rvm:
 install:
   - sudo apt-get install -y jq
   - gem install fpm
-  - gem install deb-s3
 
 script:
-  - bash $TRAVIS_BUILD_DIR/scripts/jfrog bt config --interactive=false --user=$BINTRAY_USER --key=$BINTRAY_KEY
   - bash $TRAVIS_BUILD_DIR/build/package_tools.sh
