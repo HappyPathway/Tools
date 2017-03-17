@@ -22,6 +22,7 @@ def init_session(username, password, mfa_code):
 def clear_repo_teams(org, repo_name):
     for team in list_teams(org):
         for repo in list_team_repos(org, team):
+            # print("{0}: {1}".format(repo, team))
             if repo == repo_name:
                 # print("Would remove team {0} from repo {1}".format(team, repo))
                 remove_team_from_repo(org, team, repo_name)
@@ -38,9 +39,17 @@ def list_team_repos(org, team_name):
     # GET /teams/:id/repos
     team_id = get_team(org, team_name).get('id')
     resp = session.get("https://api.github.com/teams/{0}/repos".format(team_id))
+
     for repo in resp.json():
         yield repo.get('name')
 
+    regex = re.compile("\<(?P<url>[^>]*)\>; rel=\"next\"")
+    m =  regex.search(resp.headers.get('Link', "NOLINK"))
+    while m:
+        resp = session.get(m.group('url'))
+        m =  regex.search(resp.headers.get('Link', "NOLINK"))
+        for repo in resp.json():
+            yield repo.get('name')
 
 def remove_team_from_repo(org, team_name, repo_name):
     # DELETE /teams/:id/repos/:owner/:repo

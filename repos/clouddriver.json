@@ -7,12 +7,12 @@
   "has_wiki": false,
   "teams": [
     {
-      "name": "DevOps",
-      "permission": "admin"
-    },
-    {
       "name": "Engineers",
       "permission": "push"
+    },
+    {
+      "name": "DevOps",
+      "permission": "admin"
     }
   ]
 }
