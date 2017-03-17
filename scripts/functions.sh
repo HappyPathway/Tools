@@ -191,8 +191,8 @@ function cp_configs {
           mkdir -p data/$destination;
           cp $(pwd)/../$file_source data/$destination/.;
         else
-          mkdir -p ../zip_data/$destination;
-          cp $(pwd)/../$file_source ../zip_data/$destination/.;
+          mkdir -p zip_data/$destination;
+          cp $(pwd)/../$file_source zip_data/$destination/.;
       fi
     done
 }
