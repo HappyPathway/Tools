@@ -52,6 +52,9 @@ fi
 # standard deb package prep
 init_tmp
 download_pkg
+
+pre_extract_commands
+
 if [ $(is_zip) -ne "0" ]
   then
     unpack
