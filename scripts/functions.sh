@@ -17,6 +17,16 @@ function version {
  echo $(cat $CONFIG_FILE | jq -r .version)
 }
 
+function upstart_script {
+  upstart_script=$(cat $CONFIG_FILE | jq -r .upstart)
+  rm $(basename "$upstart_script")
+  if [ $upstart_script != "null" ]
+  then
+      cp $upstart_script $(basename "$upstart_script")
+      echo $(basename "$upstart_script")
+  fi
+}
+
 function post_install {
   rm postinst
   post_install=$(cat $CONFIG_FILE | jq -r .post_install)
@@ -89,7 +99,7 @@ function unpack_zip {
   echo "Unpacking zipfile"
 
   mkdir zip_data
-  unzip $PACKAGE_NAME -d ../zip_data
+  unzip $PACKAGE_NAME -d zip_data
 }
 
 function get_source {
@@ -156,7 +166,7 @@ function pre_config_commands {
 }
 
 function is_zip {
-  zipfile=$(echo $PACKAGE_NAME | egrep "*.zip$" >/dev/null 2>&1; echo $?)
+  zipfile=$(echo $PACKAGE_NAME | grep -c ".zip$" >/dev/null 2>&1; echo $?)
   if [ "$zipfile" -eq 0 ]
     then
       echo 0

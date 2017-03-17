@@ -102,6 +102,11 @@ if [ -f postrm ]
 then
   FPM_CMD=$FPM_CMD" --after-remove postrm"
 fi
+script_name=$(upstart_script)
+if [ -n "$script_name" ]
+then
+  FPM_CMD=$FPM_CMD" --deb-upstart $script_name"
+fi
 
 
 if [ $( jq -r ".pre_dependencies | length " < $CONFIG_FILE ) > 0 ]
@@ -111,7 +116,7 @@ fi
 
 if [ $( jq -r ".dependencies | length " < $CONFIG_FILE ) > 0 ]
   then
-    FPM_CMD=$FPM_CMD" $(pkg_dependencies $CONFIG_FILE $APP_NAME) " 
+    FPM_CMD=$FPM_CMD" $(pkg_dependencies $CONFIG_FILE $APP_NAME) "
 fi
 
 
@@ -119,7 +124,7 @@ if [ $(is_zip) -ne "0" ]
 then
   FPM_CMD=$FPM_CMD" -a amd64 tmp/data/=/"
 else
-  FPM_CMD=$FPM_CMD" -a amd64 zip_data/=/"
+  FPM_CMD=$FPM_CMD" -a amd64 tmp/zip_data/=/"
 fi
 
 
@@ -141,6 +146,3 @@ mv *.deb build/.
 #echo "Pushing new package to S3 Apt Repo"
 #DEBIAN_PACKAGE=$(ls build/*.deb | awk -F'/' '{print $NF }')
 #deb-s3 upload --bucket cb-devops-debs "build/$DEBIAN_PACKAGE" -e -v private
-
-
-
