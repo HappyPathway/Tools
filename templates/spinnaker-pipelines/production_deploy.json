@@ -1,0 +1,133 @@
+{
+  "appConfig": {},
+  "keepWaitingPipelines": true,
+  "lastModifiedBy": "zakcrawford",
+  "limitConcurrent": true,
+  "parallel": true,
+  "parameterConfig": [
+    {
+      "default": "master",
+      "description": "The branch name (with dashes instead of underscores) to deploy",
+      "hasOptions": false,
+      "name": "Branch"
+    }
+  ],
+  "stages": [
+    {
+      "cloudProvider": "aws",
+      "cloudProviderType": "aws",
+      "cluster": "baseami-SpinnakerBase-64",
+      "credentials": "chartboost-engineering-aws",
+      "name": "Find Base AMI",
+      "onlyEnabled": false,
+      "refId": "2",
+      "regions": [
+        "us-east-1"
+      ],
+      "requisiteStageRefIds": [],
+      "selectionStrategy": "NEWEST",
+      "type": "findImage"
+    },
+    {
+      "amiName": "{{appname}}-${trigger['parameters']['Branch']}-ubuntu",
+      "baseAmi": "${ #stage('Find Base AMI')['context']['amiDetails'][0]['ami']}",
+      "baseLabel": "release",
+      "baseOs": "ubuntu",
+      "cloudProviderType": "aws",
+      "comments": "${ #stage('Bake')['context']['extendedAttributes']['deb_files'].split(' ')}",
+      "extendedAttributes": {
+        "deb_files": "{{appname}}_1.0-${parameters['Branch']}_all.deb"
+      },
+      "name": "Bake",
+      "package": "",
+      "refId": "3",
+      "region": "us-east-1",
+      "regions": [
+        "us-east-1"
+      ],
+      "requisiteStageRefIds": [
+        "2"
+      ],
+      "showAdvancedOptions": true,
+      "storeType": "ebs",
+      "templateFileName": "aws-ebs-dpkg.json",
+      "type": "bake",
+      "user": "zakcrawford",
+      "vmType": "hvm"
+    },
+    {
+      "clusters": [
+        {
+          "account": "chartboost-engineering-aws",
+          "application": "{{appname}}",
+          "associatePublicIpAddress": true,
+          "availabilityZones": {
+            "us-east-1": [
+              "us-east-1a",
+              "us-east-1d",
+              "us-east-1e"
+            ]
+          },
+          "base64UserData": "",
+          "capacity": {
+            "desired": 1,
+            "max": 1,
+            "min": 1
+          },
+          "cloudProvider": "aws",
+          "cooldown": 10,
+          "ebsOptimized": false,
+          "freeFormDetails": "",
+          "healthCheckGracePeriod": 600,
+          "healthCheckType": "ELB",
+          "iamRole": "BaseIAMRole",
+          "instanceMonitoring": false,
+          "instanceType": "t2.micro",
+          "interestingHealthProviderNames": [
+            "Amazon"
+          ],
+          "keyPair": "devops-20151021",
+          "loadBalancers": [
+            "{{appname}}-production-elb"
+          ],
+          "maxRemainingAsgs": 10,
+          "provider": "aws",
+          "scaleDown": true,
+          "securityGroups": [
+            "sg-860945e3"
+          ],
+          "stack": "production",
+          "strategy": "redblack",
+          "subnetType": "internal (production)",
+          "suspendedProcesses": [
+            "ReplaceUnhealthy"
+          ],
+          "tags": {
+            "Environment": "production",
+            "Name": "{{appname}}",
+            "Spinnakerized": "yes",
+            "Team": "{{teamname}}",
+            "role": "{{appname}}",
+            "roletype": "{{appname}}"
+          },
+          "targetHealthyDeployPercentage": 100,
+          "terminationPolicies": [
+            "Default"
+          ],
+          "useAmiBlockDeviceMappings": false,
+          "useSourceCapacity": true,
+          "virtualizationType": null
+        }
+      ],
+      "name": "Deploy",
+      "refId": "4",
+      "requisiteStageRefIds": [
+        "3"
+      ],
+      "type": "deploy"
+    }
+  ],
+  "triggers": [],
+  "updateTs": "1490048561000"
+}
+
