@@ -3,6 +3,7 @@
   "description": "echo repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/echo",
   "org": "ChartBoost",
+  "pkg_name": "spinnaker-echo",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

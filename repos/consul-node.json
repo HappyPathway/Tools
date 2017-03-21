@@ -3,6 +3,7 @@
   "description": "consul repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/consul",
   "org": "ChartBoost",
+  "pkg_name": "consul-node",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

@@ -3,6 +3,7 @@
   "description": "java-8-jre repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/java-8-jre",
   "org": "ChartBoost",
+  "pkg_name": "java-8-jre",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

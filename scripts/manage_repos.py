@@ -11,16 +11,45 @@ import requests
 import sys
 import glob 
 import semantic_version
+from jinja2 import Template
 
 
-def pkg_versions(pkg_name, branch_name=None):
-    if branch_name:
-        str_regex = "{0}-{1}{2}amd64.deb".format(pkg_name, 
-                                                 branch_name, 
-                                                 r"_(?P<version>[\d+\.]{5})_")
-    else:
-        str_regex = "{0}{1}amd64.deb".format(pkg_name, 
-                                             r"_(?P<version>[\d+\.]{5})_")
+AWS_ACCESS_KEY_ID="AKIAISJWKP26Z6FEW6OQ"
+AWS_SECRET_ACCESS_KEY="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"
+
+def commit(_dir, message, branch='master', remote='origin'):
+    cur_dir = os.getcwd()
+    os.chdir(_dir)
+    os.system('''git add .''')
+    os.system('''git commit -m "{0}"'''.format(message))
+    os.system('''git push -u {0} {1}'''.format(remote, branch))
+    os.chdir(cur_dir)
+
+
+def travis_keys(_dir):
+    cur_dir = os.getcwd()
+    os.chdir(_dir)
+    os.system("travis encrypt --no-interactive AWS_ACCESS_KEY_ID={0} --add".format(AWS_ACCESS_KEY_ID))
+    os.system("travis encrypt --no-interactive AWS_SECRET_ACCESS_KEY={0} --add".format(AWS_SECRET_ACCESS_KEY))
+    os.chdir(cur_dir)
+
+
+def pkg_versions(pkg_name, branch_name=None, git_hash=None):
+    if branch_name and branch_name != 'master':
+        str_regex = "{0}-{1}{2}".format(pkg_name, 
+                                        branch_name, 
+                                        r"_(?P<version>[\d+\.]{5})_")
+
+    if not branch_name or branch_name == 'master':
+        str_regex = "{0}{1}".format(pkg_name, 
+                                    r"_(?P<version>[\d+\.]{5})_")
+
+    # print(str_regex)
+    if git_hash:
+        str_regex = str_regex+"-"+git_hash
+
+    str_regex += "amd64.deb"
+    # print(str_regex)
     regex = re.compile(str_regex)
     s = s3.connect_to_region('us-east-1')
     bucket = s.get_bucket('cb-devops-repo')
@@ -28,8 +57,20 @@ def pkg_versions(pkg_name, branch_name=None):
     for key in bucket.get_all_keys(prefix=pkg_name):
         m = regex.search(key.name)
         if m:
-            versions.append(m.group('version'))
-    return sorted(versions)
+            versions.append(semantic_version.Version(m.group('version')))
+    return [str(x) for x in sorted(versions, reverse=True)]
+
+
+def create_travis_config(clobber, repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version):
+    template_dir = os.path.join(os.path.dirname(__file__), "../templates")
+    t = Template(open(os.path.join(template_dir, "travis.j2")).read())
+    rendered_template_dir = os.path.join(repo_dir, repo_name)
+    if clobber or not os.path.isfile(os.path.join(rendered_template_dir, '.travis.yml')):
+        with open(os.path.join(rendered_template_dir, '.travis.yml'), 'w') as template:
+            template.write(t.render(dict(deployment_tools_version=deployment_tools_version,
+                                         pkg_name=pkg_name,
+                                         repo_bucket=repo_bucket)))
+
 
 
 def init_session(username, password, mfa_code):
@@ -155,11 +196,7 @@ def main(opt):
     init_session(username, password, mfa_code)
 
     if not opt.repo_list:
-
-        repo = create_repo(opt.org,
-                           opt.repo)
-        print(json.dumps(repo, separators=(',', ':'), indent=4, sort_keys=True))
-
+        create_repo(opt.org, opt.repo)
         repo = repo_definition(opt.repo)
         if opt.clone_dir:
             if os.path.isdir(opt.clone_dir):
@@ -172,15 +209,20 @@ def main(opt):
         if repo.get("travis_enabled"):
             print("Enabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
             os.system("travis enable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
+            if opt.clone_dir:
+                # create_travis_config(repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version)
+                create_travis_config(opt.clobber, opt.clone_dir, repo.get("name"), opt.repo_bucket, repo.get('pkg_name'), opt.tools)
+                travis_keys(os.path.join(opt.clone_dir, repo.get('name')))
+        else:
+            print("Disabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
+            os.system("travis disable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
+
+        if opt.commit and opt.clone_dir and repo.get("travis_enabled"):
+            commit(os.path.join(opt.clone_dir, repo.get("name")), "Enabling Travis")
 
     else:
         for x in glob.glob(os.path.join(opt.repo_list, '*.json')):
-            repo = create_repo(username,
-                           password,
-                           mfa_code, 
-                           opt.org,
-                           x,
-                           opt.team_name)
+            repo = create_repo(opt.org, x)
             if opt.clone_dir:
                 if not os.path.isdir(opt.clone_dir):
                     continue
@@ -193,8 +235,16 @@ def main(opt):
             if x.get("travis_enabled"):
                 print("Enabling Travis")
                 os.system("travis enable -r {0}:{1}".format(x.get("org"), x.get("name")))
+                if opt.clone_dir:
+                    # create_travis_config(repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version)
+                    create_travis_config(opt.clobber, opt.clone_dir, x.get("name"), opt.repo_bucket, repo.get('pkg_name'), opt.tools)
+                    travis_keys(os.path.join(opt.clone_dir, x.get('name')))
+            else:
+                print("Disabling Travis {0}/{1}".format(x.get("org"), x.get("name")))
+                os.system("travis disable -r {0}/{1}".format(x.get("org"), x.get("name")))
             
-            print(json.dumps(repo, separators=(',', ':'), indent=4, sort_keys=True))
+            if opt.commit and opt.clone_dir and x.get("travis_enabled"):
+                commit(os.path.join(opt.clone_dir, x.get("name")), "Enabling Travis")
     sys.exit(0)
 
 
@@ -204,7 +254,11 @@ if __name__ == '__main__':
     parser.add_option('--org', default="ChartBoost")
     parser.add_option('--repo')
     parser.add_option('--clone', dest='clone_dir', default=False)
+    parser.add_option('--clobber', action='store_true', default=False)
     parser.add_option('-d', dest='repo_list', default=False)
+    parser.add_option('--commit', action='store_true', default=False)
+    parser.add_option('--bucket', dest='repo_bucket', default='cb-devops-repo')
+    parser.add_option('--tools', dest='tools', default='spinnaker-deployment-tools_0.1.2')
     opt, arg = parser.parse_args()
     
     main(opt)

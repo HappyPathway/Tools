@@ -3,6 +3,7 @@
   "description": "gate repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/gate",
   "org": "ChartBoost",
+  "pkg_name": "spinnaker-gate",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

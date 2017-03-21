@@ -2,6 +2,7 @@
   "name": "adserver-efs",
   "description": "adserver-efs repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/adserver-efs",
+  "pkg_name": "adserver-efs",
   "org": "ChartBoost",
   "travis_enabled": true,
   "private": true,

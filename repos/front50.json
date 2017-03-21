@@ -3,6 +3,7 @@
   "description": "front50 repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/front50",
   "org": "ChartBoost",
+  "pkg_name": "spinnaker-front50",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

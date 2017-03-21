@@ -3,6 +3,7 @@
   "description": "filebeat_spinnaker repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/filebeat_spinnaker",
   "org": "ChartBoost",
+  "pkg_name": "spinnaker-filebeat",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

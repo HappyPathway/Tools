@@ -3,6 +3,7 @@
   "description": "orca repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/orca",
   "org": "ChartBoost",
+  "pkg_name": "spinnaker-orca",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

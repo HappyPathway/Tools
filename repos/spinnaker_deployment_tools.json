@@ -3,6 +3,7 @@
   "description": "spinnaker-deployment-tools repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/spinnaker-deployment-tools",
   "org": "ChartBoost",
+  "pkg_name": "spinnaker-deployment-tools",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,
