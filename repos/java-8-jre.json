@@ -1,7 +1,7 @@
 {
-  "name": "filebeat_spinnaker",
-  "description": "filebeat_spinnaker repository for spinnaker deployed services",
-  "homepage": "https://github.com/ChartBoost/filebeat_spinnaker",
+  "name": "java-8-jre",
+  "description": "java-8-jre repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/java-8-jre",
   "org": "ChartBoost",
   "travis_enabled": true,
   "private": true,

@@ -1,7 +1,7 @@
 {
-  "name": "filebeat_spinnaker",
-  "description": "filebeat_spinnaker repository for spinnaker deployed services",
-  "homepage": "https://github.com/ChartBoost/filebeat_spinnaker",
+  "name": "spinnaker-monitoring-daemon",
+  "description": "spinnaker-monitoring-daemon repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/spinnaker-monitoring-daemon",
   "org": "ChartBoost",
   "travis_enabled": true,
   "private": true,

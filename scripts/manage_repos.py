@@ -4,12 +4,32 @@ import json
 import re
 import os
 from collections import defaultdict
-from boto import iam
+from boto import iam, s3
 from requests import Session
 from requests.auth import HTTPBasicAuth
 import requests
 import sys
 import glob 
+import semantic_version
+
+
+def pkg_versions(pkg_name, branch_name=None):
+    if branch_name:
+        str_regex = "{0}-{1}{2}amd64.deb".format(pkg_name, 
+                                                 branch_name, 
+                                                 r"_(?P<version>[\d+\.]{5})_")
+    else:
+        str_regex = "{0}{1}amd64.deb".format(pkg_name, 
+                                             r"_(?P<version>[\d+\.]{5})_")
+    regex = re.compile(str_regex)
+    s = s3.connect_to_region('us-east-1')
+    bucket = s.get_bucket('cb-devops-repo')
+    versions = list()
+    for key in bucket.get_all_keys(prefix=pkg_name):
+        m = regex.search(key.name)
+        if m:
+            versions.append(m.group('version'))
+    return sorted(versions)
 
 
 def init_session(username, password, mfa_code):
@@ -140,6 +160,19 @@ def main(opt):
                            opt.repo)
         print(json.dumps(repo, separators=(',', ':'), indent=4, sort_keys=True))
 
+        repo = repo_definition(opt.repo)
+        if opt.clone_dir:
+            if os.path.isdir(opt.clone_dir):
+                print("Cloning {0} to {1}/{0}".format(repo.get("name"), opt.clone_dir))
+                cur_dir = os.getcwd()
+                os.chdir(opt.clone_dir)
+                os.system("git clone git@github.com:{0}/{1}".format(repo.get("org"), repo.get("name")))
+                os.chdir(cur_dir)
+
+        if repo.get("travis_enabled"):
+            print("Enabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
+            os.system("travis enable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
+
     else:
         for x in glob.glob(os.path.join(opt.repo_list, '*.json')):
             repo = create_repo(username,
@@ -148,6 +181,19 @@ def main(opt):
                            opt.org,
                            x,
                            opt.team_name)
+            if opt.clone_dir:
+                if not os.path.isdir(opt.clone_dir):
+                    continue
+                print("Cloning {0} to {1}/{0}".format(x.get("name"), opt.clone_dir))
+                cur_dir = os.getcwd()
+                os.chdir(opt.clone_dir)
+                os.system("git clone git@github.com:{0}/{1}".format(x.get("org"), x.get("name")))
+                os.chdir(cur_dir)
+
+            if x.get("travis_enabled"):
+                print("Enabling Travis")
+                os.system("travis enable -r {0}:{1}".format(x.get("org"), x.get("name")))
+            
             print(json.dumps(repo, separators=(',', ':'), indent=4, sort_keys=True))
     sys.exit(0)
 
@@ -157,6 +203,7 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('--org', default="ChartBoost")
     parser.add_option('--repo')
+    parser.add_option('--clone', dest='clone_dir', default=False)
     parser.add_option('-d', dest='repo_list', default=False)
     opt, arg = parser.parse_args()
     

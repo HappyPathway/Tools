@@ -2,6 +2,8 @@
   "name": "consul-server",
   "description": "consul repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/consul",
+  "org": "ChartBoost",
+  "travis_enabled": true,
   "private": true,
   "has_issues": true,
   "has_wiki": false,

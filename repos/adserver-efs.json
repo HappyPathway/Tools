@@ -1,7 +1,7 @@
 {
-  "name": "filebeat_spinnaker",
-  "description": "filebeat_spinnaker repository for spinnaker deployed services",
-  "homepage": "https://github.com/ChartBoost/filebeat_spinnaker",
+  "name": "adserver-efs",
+  "description": "adserver-efs repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/adserver-efs",
   "org": "ChartBoost",
   "travis_enabled": true,
   "private": true,

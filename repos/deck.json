@@ -2,6 +2,8 @@
   "name": "deck",
   "description": "deck repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/deck",
+  "org": "ChartBoost",
+  "travis_enabled": true,
   "private": true,
   "has_issues": true,
   "has_wiki": false,
