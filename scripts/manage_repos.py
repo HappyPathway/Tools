@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import subprocess
+import subprocess, shlex, shutil
 import json
 import re
 import os
@@ -26,6 +26,30 @@ def commit(_dir, message, branch='master', remote='origin'):
     os.chdir(cur_dir)
 
 
+def configure_travis(clone_dir, repo, commit, repo_bucket, clobber, tools):
+    if repo.get("travis_enabled"):
+        print("Enabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
+        os.system("travis enable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
+        if clone_dir:
+            # create_travis_config(repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version)
+            create_travis_config(clobber, clone_dir, repo.get("name"), repo_bucket, repo.get('pkg_name'), tools)
+            travis_keys(os.path.join(clone_dir, repo.get('name')))
+        else:
+            print("Disabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
+            os.system("travis disable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
+
+        if commit and clone_dir and repo.get("travis_enabled"):
+            commit(os.path.join(opt.clone_dir, repo.get("name")), "Enabling Travis")
+
+
+def clone(clone_dir, repo):
+    if os.path.isdir(opt.clone_dir):
+        print("Cloning {0} to {1}/{0}".format(repo.get("name"), clone_dir))
+        cur_dir = os.getcwd()
+        os.chdir(clone_dir)
+        os.system("git clone git@github.com:{0}/{1}".format(repo.get("org"), repo.get("name")))
+        os.chdir(cur_dir)
+
 def travis_keys(_dir):
     cur_dir = os.getcwd()
     os.chdir(_dir)
@@ -33,6 +57,22 @@ def travis_keys(_dir):
     os.system("travis encrypt --no-interactive AWS_SECRET_ACCESS_KEY={0} --add".format(AWS_SECRET_ACCESS_KEY))
     os.chdir(cur_dir)
 
+def repo_script(_dir, script):
+    cur_dir = os.getcwd()
+    os.chdir(_dir)
+    print(script)
+    p = subprocess.Popen(script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    
+    if p.returncode > 0:
+        sys.stderr.write(err)
+        sys.stderr.write("\n")
+        sys.exit(p.returncode)
+    else:
+        print(out)
+        print("\n")
+
+    os.chdir(cur_dir)
 
 def pkg_versions(pkg_name, branch_name=None, git_hash=None):
     if branch_name and branch_name != 'master':
@@ -137,10 +177,14 @@ def add_team_permissions(org, repo, team_name, permission):
     return resp.text
 
 
+def sanitize_path(path):
+    path = os.path.expandvars(path)
+    path = os.path.expanduser(path)
+    path = os.path.abspath(path)
+    return path
+
 def repo_definition(repo_definition):
-    repo_definition = os.path.expandvars(repo_definition)
-    repo_definition = os.path.expanduser(repo_definition)
-    repo_definition = os.path.abspath(repo_definition)
+    repo_definition = sanitize_path(repo_definition)
     with open(repo_definition, 'r') as repo_def:
         payload = json.loads(repo_def.read())
     return payload
@@ -190,61 +234,78 @@ def create_repo(org, _repo_definition):
 
 def main(opt):
     from getpass import getpass
-    (username, password, mfa_code) = (raw_input("Username: ").strip(), 
-                                      getpass("Password: ").strip(), 
-                                      raw_input("MFA Code: ").strip())
-    init_session(username, password, mfa_code)
+    if opt.create or opt.update:
+        if opt.create or opt.update:
+            (username, password, mfa_code) = (raw_input("Username: ").strip(), 
+                                              getpass("Password: ").strip(), 
+                                              raw_input("MFA Code: ").strip())
+            init_session(username, password, mfa_code)
 
     if not opt.repo_list:
-        create_repo(opt.org, opt.repo)
+        if opt.create or opt.update:
+            create_repo(opt.org, opt.repo)
+        
         repo = repo_definition(opt.repo)
         if opt.clone_dir:
-            if os.path.isdir(opt.clone_dir):
-                print("Cloning {0} to {1}/{0}".format(repo.get("name"), opt.clone_dir))
-                cur_dir = os.getcwd()
-                os.chdir(opt.clone_dir)
-                os.system("git clone git@github.com:{0}/{1}".format(repo.get("org"), repo.get("name")))
-                os.chdir(cur_dir)
+            clone(opt.clone_dir, repo)            
 
-        if repo.get("travis_enabled"):
-            print("Enabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
-            os.system("travis enable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
-            if opt.clone_dir:
-                # create_travis_config(repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version)
-                create_travis_config(opt.clobber, opt.clone_dir, repo.get("name"), opt.repo_bucket, repo.get('pkg_name'), opt.tools)
-                travis_keys(os.path.join(opt.clone_dir, repo.get('name')))
-        else:
-            print("Disabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
-            os.system("travis disable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
+        if opt.configure_travis:
+            configure_travis(clone_dir, repo, commit, repo_bucket, clobber, tools)
 
-        if opt.commit and opt.clone_dir and repo.get("travis_enabled"):
-            commit(os.path.join(opt.clone_dir, repo.get("name")), "Enabling Travis")
+        if opt.clone_dir and opt.script:
+            run_script()
+            script_dir = sanitize_path(os.path.join(opt.clone_dir, repo.get("name")))
+            script = sanitize_path(opt.script)
+            repo_script(script_dir, script)
+            if opt.commit:
+                commit(os.path.join(opt.clone_dir, repo.get("name")), "Executing: {0}".format(opt.script))
+        
+        if opt.clean and os.path.isdir(os.path.join(opt.clone_dir, repo.get("name"))):
+            shutil.rmtree(os.path.join(opt.clone_dir, repo.get("name")))
+
 
     else:
         for x in glob.glob(os.path.join(opt.repo_list, '*.json')):
-            repo = create_repo(opt.org, x)
+            repo_config = repo_definition(x)
+
+            if opt.create or opt.update:
+                repo = create_repo(opt.org, x)
+
             if opt.clone_dir:
                 if not os.path.isdir(opt.clone_dir):
                     continue
-                print("Cloning {0} to {1}/{0}".format(x.get("name"), opt.clone_dir))
+                print("Cloning {0} to {1}/{0}".format(repo_config.get("name"), opt.clone_dir))
                 cur_dir = os.getcwd()
                 os.chdir(opt.clone_dir)
-                os.system("git clone git@github.com:{0}/{1}".format(x.get("org"), x.get("name")))
+                os.system("git clone git@github.com:{0}/{1}".format(repo_config.get("org"), repo_config.get("name")))
                 os.chdir(cur_dir)
 
-            if x.get("travis_enabled"):
-                print("Enabling Travis")
-                os.system("travis enable -r {0}:{1}".format(x.get("org"), x.get("name")))
-                if opt.clone_dir:
-                    # create_travis_config(repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version)
-                    create_travis_config(opt.clobber, opt.clone_dir, x.get("name"), opt.repo_bucket, repo.get('pkg_name'), opt.tools)
-                    travis_keys(os.path.join(opt.clone_dir, x.get('name')))
-            else:
-                print("Disabling Travis {0}/{1}".format(x.get("org"), x.get("name")))
-                os.system("travis disable -r {0}/{1}".format(x.get("org"), x.get("name")))
+            if opt.configure_travis:
+                if x.get("travis_enabled"):
+                    print("Enabling Travis")
+                    os.system("travis enable -r {0}:{1}".format(repo_config.get("org"), repo_config.get("name")))
+                    if opt.clone_dir:
+                        # create_travis_config(repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version)
+                        create_travis_config(opt.clobber, opt.clone_dir, repo_config.get("name"), opt.repo_bucket, repo.get('pkg_name'), opt.tools)
+                        travis_keys(os.path.join(opt.clone_dir, repo_config.get('name')))
+                else:
+                    print("Disabling Travis {0}/{1}".format(repo_config.get("org"), repo_config.get("name")))
+                    os.system("travis disable -r {0}/{1}".format(repo_config.get("org"), repo_config.get("name")))
+
+                if opt.commit and opt.clone_dir and repo_config.get("travis_enabled"):
+                    commit(os.path.join(opt.clone_dir, repo_config.get("name")), "Enabling Travis")
             
-            if opt.commit and opt.clone_dir and x.get("travis_enabled"):
-                commit(os.path.join(opt.clone_dir, x.get("name")), "Enabling Travis")
+            if opt.clone_dir and opt.script:
+                script_dir = sanitize_path(os.path.join(opt.clone_dir, repo_config.get("name")))
+                script = sanitize_path(opt.script)
+                repo_script(script_dir, script)
+                if opt.commit:
+                    commit(os.path.join(opt.clone_dir, repo_config.get("name")), "Executing: {0}".format(opt.script))
+
+            if opt.clean and os.path.isdir(os.path.join(opt.clone_dir, repo_config.get("name"))):
+                shutil.rmtree(os.path.join(opt.clone_dir, repo_config.get("name")))
+
+            
     sys.exit(0)
 
 
@@ -253,12 +314,17 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('--org', default="ChartBoost")
     parser.add_option('--repo')
+    parser.add_option('--create', default=False, action='store_true')
+    parser.add_option('--update', default=False, action='store_true')
+    parser.add_option('--script', default=False)
+    parser.add_option('--travis', default=False, action='store_true', dest='configure_travis')
     parser.add_option('--clone', dest='clone_dir', default=False)
     parser.add_option('--clobber', action='store_true', default=False)
     parser.add_option('-d', dest='repo_list', default=False)
     parser.add_option('--commit', action='store_true', default=False)
     parser.add_option('--bucket', dest='repo_bucket', default='cb-devops-repo')
     parser.add_option('--tools', dest='tools', default='spinnaker-deployment-tools_0.1.2')
+    parser.add_option('--clean', action='store_true', default=False)
     opt, arg = parser.parse_args()
     
     main(opt)
