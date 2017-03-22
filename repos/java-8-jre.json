@@ -1,9 +1,9 @@
 {
-  "name": "deck",
-  "description": "deck repository for spinnaker deployed services",
-  "homepage": "https://github.com/ChartBoost/deck",
+  "name": "java-8-jre",
+  "description": "java-8-jre repository for spinnaker deployed services",
+  "homepage": "https://github.com/ChartBoost/java-8-jre",
   "org": "ChartBoost",
-  "pkg_name": "spinnaker-deck",
+  "pkg_name": "java-8-jre",
   "travis_enabled": true,
   "private": true,
   "has_issues": true,

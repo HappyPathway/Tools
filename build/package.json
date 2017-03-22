@@ -1,5 +1,5 @@
 {
-  "version": "0.1.2",
+  "version": "0.1.3",
   "bintray_repo": "debians",
   "bintray_package": "spinnaker-deployment-tools",
   "arch": "amd64",
