@@ -26,7 +26,7 @@ def commit(_dir, message, branch='master', remote='origin'):
     os.chdir(cur_dir)
 
 
-def configure_travis(clone_dir, repo, commit, repo_bucket, clobber, tools):
+def configure_travis(clone_dir, repo, _commit, repo_bucket, clobber, tools):
     if repo.get("travis_enabled"):
         print("Enabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
         os.system("travis enable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
@@ -38,7 +38,7 @@ def configure_travis(clone_dir, repo, commit, repo_bucket, clobber, tools):
             print("Disabling Travis {0}/{1}".format(repo.get("org"), repo.get("name")))
             os.system("travis disable -r {0}/{1}".format(repo.get("org"), repo.get("name")))
 
-        if commit and clone_dir and repo.get("travis_enabled"):
+        if _commit and clone_dir and repo.get("travis_enabled"):
             commit(os.path.join(opt.clone_dir, repo.get("name")), "Enabling Travis")
 
 
@@ -250,11 +250,11 @@ def main(opt):
             clone(opt.clone_dir, repo)            
 
         if opt.configure_travis:
-            configure_travis(clone_dir, repo, commit, repo_bucket, clobber, tools)
+            configure_travis(opt.clone_dir, repo, opt.commit, opt.repo_bucket, opt.clobber, opt.tools)
 
         if opt.clone_dir and opt.script:
-            run_script()
-            script_dir = sanitize_path(os.path.join(opt.clone_dir, repo.get("name")))
+            script_dir = os.path.join(opt.clone_dir, repo.get("name"))
+            script_dir = sanitize_path(script_dir)
             script = sanitize_path(opt.script)
             repo_script(script_dir, script)
             if opt.commit:
@@ -272,25 +272,12 @@ def main(opt):
                 repo = create_repo(opt.org, x)
 
             if opt.clone_dir:
-                if not os.path.isdir(opt.clone_dir):
-                    continue
-                print("Cloning {0} to {1}/{0}".format(repo_config.get("name"), opt.clone_dir))
-                cur_dir = os.getcwd()
-                os.chdir(opt.clone_dir)
-                os.system("git clone git@github.com:{0}/{1}".format(repo_config.get("org"), repo_config.get("name")))
-                os.chdir(cur_dir)
+                clone(opt.clone_dir, repo_config)
 
             if opt.configure_travis:
-                if x.get("travis_enabled"):
-                    print("Enabling Travis")
-                    os.system("travis enable -r {0}:{1}".format(repo_config.get("org"), repo_config.get("name")))
-                    if opt.clone_dir:
-                        # create_travis_config(repo_dir, repo_name, repo_bucket, pkg_name, deployment_tools_version)
-                        create_travis_config(opt.clobber, opt.clone_dir, repo_config.get("name"), opt.repo_bucket, repo.get('pkg_name'), opt.tools)
-                        travis_keys(os.path.join(opt.clone_dir, repo_config.get('name')))
-                else:
-                    print("Disabling Travis {0}/{1}".format(repo_config.get("org"), repo_config.get("name")))
-                    os.system("travis disable -r {0}/{1}".format(repo_config.get("org"), repo_config.get("name")))
+                
+                if opt.configure_travis:
+                    configure_travis(opt.clone_dir, repo_config, opt.commit, opt.repo_bucket, opt.clobber, opt.tools)
 
                 if opt.commit and opt.clone_dir and repo_config.get("travis_enabled"):
                     commit(os.path.join(opt.clone_dir, repo_config.get("name")), "Enabling Travis")
