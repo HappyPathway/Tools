@@ -3,7 +3,7 @@
   "description": "spinnaker-monitoring-daemon repository for spinnaker deployed services",
   "homepage": "https://github.com/ChartBoost/spinnaker-monitoring-daemon",
   "org": "ChartBoost",
-  "pkg_name": "spinnaker-monitoring",
+  "pkg_name": "spinnaker-monitoring-daemon',
   "travis_enabled": true,
   "private": true,
   "has_issues": true,
