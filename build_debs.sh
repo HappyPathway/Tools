@@ -1,10 +1,11 @@
 #!/bin/bash
 # set -e
 
-CONFIG_FILE=$(pwd)/$1
+CONFIG_FILE=$BUILD_DIR/$1
 APP_NAME=$2
 
-
+# SHORT_HASH=$(echo $TRAVIS_COMMIT | cut -c1-8)
+# echo $SHORT_HASH
 
 if [ -z $CONFIG_FILE ]
 then
@@ -33,22 +34,38 @@ echo Version: $VERSION
 PACKAGE_URL=$REPO_URL/$PACKAGE_NAME
 echo Package url: $PACKAGE_URL
 
+
 # setup functions
 functions=$(dirname $0)/functions.sh
 echo $functions
 source $functions
 
+echo "Working on Branch: ${BRANCH}"
+if [ "${BRANCH}" != "master" ]
+then
+  PACKAGE_APP_NAME=$APP_NAME-$BRANCH
+else
+  PACKAGE_APP_NAME=$APP_NAME
+fi
+
+
 # standard deb package prep
 init_tmp
-download_pkg
-if [ $(is_zip) -ne "0" ]
+
+# download package if need be
+if [ $(needs_download) -ne "0" ]
   then
-    unpack
-    extract_data
-    extract_control
-  else
-    rm -rf zip_data/*
-    unpack_zip
+    download_pkg
+    pre_extract_commands
+    if [ $(is_zip) -ne "0" ]
+      then
+        unpack
+        extract_data
+        extract_control
+      else
+        rm -rf zip_data/*
+        unpack_zip
+    fi
 fi
 
 # if you need to run various commands for cleaning, creating files/dirs
@@ -66,16 +83,9 @@ cd ..
 
 echo "repacking debian package"
 
-BRANCH_NAME=$(git branch | grep \* | cut -d ' ' -f2)
-echo "Working on Branch: $BRANCH_NAME"
-if [ "$BRANCH_NAME" != "master" ]
-then
-  PACKAGE_APP_NAME=$APP_NAME-$BRANCH_NAME
-else
-  PACKAGE_APP_NAME=$APP_NAME
-fi
+# BRANCH_NAME=$(git branch | grep \* | cut -d ' ' -f2)
 
-FPM_CMD="fpm -s dir -t deb -n $PACKAGE_APP_NAME -v $VERSION"
+FPM_CMD="fpm -s dir -t deb -n ${PACKAGE_APP_NAME} -v ${VERSION}"
 
 pre_install
 if [ -f preinst ]
@@ -98,6 +108,11 @@ if [ -f postrm ]
 then
   FPM_CMD=$FPM_CMD" --after-remove postrm"
 fi
+script_name=$(upstart_script)
+if [ -n "$script_name" ]
+then
+  FPM_CMD=$FPM_CMD" --deb-upstart $script_name"
+fi
 
 
 if [ $( jq -r ".pre_dependencies | length " < $CONFIG_FILE ) > 0 ]
@@ -107,33 +122,22 @@ fi
 
 if [ $( jq -r ".dependencies | length " < $CONFIG_FILE ) > 0 ]
   then
-    FPM_CMD=$FPM_CMD" $(pkg_dependencies $CONFIG_FILE $APP_NAME) " 
+    FPM_CMD=$FPM_CMD" $(pkg_dependencies $CONFIG_FILE $APP_NAME) "
 fi
 
 
 if [ $(is_zip) -ne "0" ]
 then
-  FPM_CMD=$FPM_CMD" tmp/data/=/"
+  FPM_CMD=$FPM_CMD" -a amd64 tmp/data/=/"
 else
-  FPM_CMD=$FPM_CMD" zip_data/=/"
+  FPM_CMD=$FPM_CMD" -a amd64 tmp/zip_data/=/"
 fi
 
 
 echo $FPM_CMD
-rm $APP_NAME*.deb || echo "no deb $APP_NAME package in $(pwd)"
+rm $PACKAGE_APP_NAME*.deb || echo "no deb $APP_NAME package in $(pwd)"
 eval $FPM_CMD
 
 rm build/*.deb || echo "no deb packages in build/*.deb"
 mkdir build || echo "build directory already created"
-mv *.deb build/.
-
-echo "cleaning up"
-# rm -r tmp
-
-
-echo "Removing old package from S3 Apt Repo"
-deb-s3 delete $APP_NAME --versions=$VERSION --arch amd64 --bucket=cb-devops-debs
-
-echo "Pushing new package to S3 Apt Repo"
-DEBIAN_PACKAGE=$(ls build/*.deb | awk -F'/' '{print $NF }')
-deb-s3 upload --bucket cb-devops-debs "build/$DEBIAN_PACKAGE" -e -v private
+mv *.deb ${APT_REPO_DIR}

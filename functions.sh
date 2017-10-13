@@ -3,6 +3,16 @@ function init_tmp {
   cd tmp
 }
 
+function needs_download {
+  _has_url=$(jq 'select(.repoUrl != null)' ${CONFIG_FILE} | wc -l | bc)
+  if [ "${_has_url}" -ne 0 ]
+    then
+      echo 0
+    else
+      echo 1
+  fi
+}
+
 function download_pkg {
   echo "Downloading $PACKAGE_URL"
   wget $PACKAGE_URL
@@ -132,6 +142,8 @@ function post_install {
     cp $post_install postinst
   fi
 }
+
+
 
 function post_remove {
   rm postremove
