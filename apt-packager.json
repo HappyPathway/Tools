@@ -1,0 +1,14 @@
+{
+  "packageName": "apt-packager",
+  "packageVersion": "1.0.0",
+  "configs": [
+  	{
+  		"source": "build_debs.sh",
+  		"destination": "/opt/apt-packager/"
+  	},
+  	{
+  		"source": "functions.sh",
+  		"destination": "/opt/apt-packager/"
+  	}
+  ]
+}

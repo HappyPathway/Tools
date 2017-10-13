@@ -41,11 +41,16 @@ echo $functions
 source $functions
 
 echo "Working on Branch: ${BRANCH}"
-if [ "${BRANCH}" != "master" ]
-then
-  PACKAGE_APP_NAME=$APP_NAME-$BRANCH
-else
-  PACKAGE_APP_NAME=$APP_NAME
+if [ -z "${BRANCH}"]
+  then 
+    PACKAGE_APP_NAME=$APP_NAME
+  else
+    if [ "${BRANCH}" != "master" ]
+      then
+        PACKAGE_APP_NAME=$APP_NAME-$BRANCH
+      else
+        PACKAGE_APP_NAME=$APP_NAME
+    fi
 fi
 
 
@@ -138,6 +143,11 @@ echo $FPM_CMD
 rm $PACKAGE_APP_NAME*.deb || echo "no deb $APP_NAME package in $(pwd)"
 eval $FPM_CMD
 
-rm build/*.deb || echo "no deb packages in build/*.deb"
-mkdir build || echo "build directory already created"
-mv *.deb ${APT_REPO_DIR}
+if [ ! -z "${APT_REPO_DIR}"]
+  then
+    rm ${APT_REPO_DIR}/*.deb || echo "no deb packages in build/*.deb"
+    mkdir ${APT_REPO_DIR} || echo "build directory already created"
+    mv *.deb ${APT_REPO_DIR}
+fi
+
+cleanup;

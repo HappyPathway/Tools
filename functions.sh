@@ -7,9 +7,9 @@ function needs_download {
   _has_url=$(jq 'select(.repoUrl != null)' ${CONFIG_FILE} | wc -l | bc)
   if [ "${_has_url}" -ne 0 ]
     then
-      echo 0
-    else
       echo 1
+    else
+      echo 0
   fi
 }
 
@@ -206,7 +206,22 @@ function pkg_dependencies {
 
 
 
+function cleanup {
+  if [ -d "build" ]
+  then
+    rm -rf build
+  fi
 
+  if [ -d "tmp" ]
+    then
+      rm -rf tmp
+  fi
+
+  if [ -f 0 ]
+    then 
+      rm 0
+  fi
+}
 
 
 
