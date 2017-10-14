@@ -117,6 +117,41 @@ function cp_configs {
     done
 }
 
+function get_map_source {
+  config=$1
+  app_name=$2
+  index=$3
+  echo  $(jq -r .mappings[$index].source < $CONFIG_FILE)
+}
+
+function get_map_destination {
+  config=$1
+  app_name=$2
+  index=$3
+  echo  $(jq -r .mappings[$index].destination < $CONFIG_FILE)
+}
+
+function map_files {
+  config=$1
+  app_name=$2
+  actual_array_size=$( jq -r ".mappings | length " < $CONFIG_FILE )
+  useable_array_size=$(echo $actual_array_size-1 | bc)
+  for i in $(seq 0 $useable_array_size);
+    do
+      file_source=$(get_map_source $config $APP_NAME $i);
+      destination=$(get_map_destination $config $APP_NAME $i)
+      echo "$file_source -> $destination";
+      if [ $(is_zip) -ne "0" ]
+        then
+          mkdir -p $(dirname data/$destination);
+          cp -r $(pwd)/../$file_source data/$destination/.;
+        else
+          mkdir -p $(dirname zip_data/$destination);
+          cp -r $(pwd)/../$file_source zip_data/$destination/.;
+      fi
+    done
+}
+
 function pre_install {
   rm preinst
   pre_install=$(cat $CONFIG_FILE | jq -r .pre_install)
@@ -147,7 +182,7 @@ function post_install {
 
 function post_remove {
   rm postremove
-  post_remove=$(cat $CONFIG_FILE | jq -r .pre_install)
+  post_remove=$(cat $CONFIG_FILE | jq -r .post_remove)
   if [ -f "tmp/control/postremove" ]
   then
     cp tmp/control/postremove postremove

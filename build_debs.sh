@@ -113,6 +113,7 @@ if [ -f postrm ]
 then
   FPM_CMD=$FPM_CMD" --after-remove postrm"
 fi
+
 script_name=$(upstart_script)
 if [ -n "$script_name" ]
 then

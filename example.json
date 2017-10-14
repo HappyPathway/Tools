@@ -1,0 +1,40 @@
+{
+	"repoUrl": "URL for Package. If Package needs to be downloaded prior to further processing.",
+	"packageName": "Name of Package to be downloaded. Full URL for package is ${repoUrl}/${packageName}",
+	"packageVersion": "Version of Produced Package",
+	
+	# useful for individual files that need to be copied into place for debian package
+	"configs": [
+		"source": "Source of config file",
+		"destination": "Destination of config file"
+	],
+
+	# useful for directories that need to copied into place for debian package
+	"mappings": [
+		"source": "Source for directory",
+		"destination": "Destination for directory"
+	],
+
+	# list of commands to run on local system prior to extracting downloaded package
+	"preExtractCommands": [],
+
+	# list of commands to run on local system prior to moving config files into place
+	# if you need to run various commands for cleaning, creating files/dirs
+	# or other types of commands, this is where you'd run them
+	"preConfigCommands"" [],
+
+	"pre_install": "path/to/preinstall/script",
+	"post_install": "path/to/postinstall/script",
+	"post_remove": "path/to/postremove/script",
+	"upstart": "path/to/upstart/script",
+
+	# pre-dependencies will cause apt-get install to install these dependencies prior to installing this package.
+	"pre_dependencies": [
+
+	],
+
+	# dependencies are expected to be in place prior to installing this package; but, apt-get will not install them.
+	"dependencies": [
+
+	],
+}
